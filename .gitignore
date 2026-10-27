@@ -1,0 +1,32 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+keys/*
+!keys/.gitkeep
+*.pem
+*.key
+
+# Node
+node_modules/
+dist/
+coverage/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# IDE / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
