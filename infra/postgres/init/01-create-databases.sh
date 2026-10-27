@@ -17,3 +17,5 @@ EOSQL
 
 create_service_db "$AUTH_DB_NAME" "$AUTH_DB_USER" "$AUTH_DB_PASSWORD"
 create_service_db "$REPAIRS_DB_NAME" "$REPAIRS_DB_USER" "$REPAIRS_DB_PASSWORD"
+
+create_service_db "auth_db_test" "auth_user" "change_me_auth"
