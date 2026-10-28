@@ -101,6 +101,12 @@ class OrderService:
         elif data.actual_delivery_date is not None:
             raise BusinessRuleError("actual_delivery_date can only be set when delivering")
 
+        # Progress details travel with the status change; there is no free edit of the order.
+        for field in ("diagnosis", "work_performed", "observations"):
+            value = getattr(data, field)
+            if value is not None:
+                setattr(order, field, value)
+
         order.status = data.status
         self.orders.add_history(
             OrderStatusHistory(

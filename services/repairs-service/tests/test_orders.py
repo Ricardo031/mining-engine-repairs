@@ -207,3 +207,41 @@ def test_summary_counts_every_status(http, operator_headers, create_order):
     assert counts["IN_DIAGNOSIS"] == 1
     assert counts["DELIVERED"] == 0
     assert len(counts) == 7
+
+
+def test_status_change_records_progress_details(http, operator_headers, create_order):
+    order = create_order(observations="Initial note")
+
+    diagnosed = change_status(
+        http,
+        operator_headers,
+        order["id"],
+        "IN_DIAGNOSIS",
+        diagnosis="Worn injectors in cylinders 3 and 7",
+    )
+    assert diagnosed.status_code == 200
+    data = diagnosed.json()["data"]
+    assert data["diagnosis"] == "Worn injectors in cylinders 3 and 7"
+    assert data["observations"] == "Initial note"  # omitted fields keep their value
+
+    approved = change_status(
+        http,
+        operator_headers,
+        order["id"],
+        "AWAITING_APPROVAL",
+        work_performed="Replace 16 injectors",
+        observations="Budget sent to client",
+    )
+    data = approved.json()["data"]
+    assert data["diagnosis"] == "Worn injectors in cylinders 3 and 7"
+    assert data["work_performed"] == "Replace 16 injectors"
+    assert data["observations"] == "Budget sent to client"
+
+
+def test_invalid_transition_does_not_save_details(http, operator_headers, create_order):
+    order = create_order()
+    response = change_status(http, operator_headers, order["id"], "DELIVERED", diagnosis="x")
+    assert response.status_code == 422
+
+    current = http.get(f"{URL}/{order['id']}", headers=operator_headers).json()["data"]
+    assert current["diagnosis"] is None

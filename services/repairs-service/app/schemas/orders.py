@@ -32,6 +32,11 @@ class OrderStatusUpdate(InputModel):
     note: NoteText | None = None
     # Only used when moving to DELIVERED; defaults to today.
     actual_delivery_date: date | None = None
+    # Optional progress details recorded together with the status change
+    # (e.g. the diagnosis when leaving IN_DIAGNOSIS). Omitted fields keep their value.
+    diagnosis: LongText | None = None
+    work_performed: LongText | None = Field(None, description="Work done or repair required")
+    observations: LongText | None = None
 
 
 class StatusHistoryOut(OutputModel):

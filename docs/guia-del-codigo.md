@@ -303,7 +303,7 @@ tokens viejos dejan de ser válidos).
 3. Responde 201 con la orden completa, incluido `allowed_next_statuses: ["IN_DIAGNOSIS"]`,
    que le sirve al frontend para mostrar solo los botones válidos.
 
-**Cambiar de estado:** `PATCH /api/v1/orders/{id}/status` con `{ status, note? }`
+**Cambiar de estado:** `PATCH /api/v1/orders/{id}/status` con `{ status, note?, diagnosis?, work_performed?, observations? }`
 
 1. `OrderService.change_status` lee la orden **con bloqueo** (`for_update=True`),
    para que dos personas no la cambien al mismo tiempo.
@@ -311,11 +311,57 @@ tokens viejos dejan de ser válidos).
    se permite → 422 con los estados permitidos en el mensaje.
 3. Si el nuevo estado es `DELIVERED`, guarda `actual_delivery_date` (hoy, o la
    fecha que envíes).
-4. Agrega una fila a `order_status_history`: de qué estado a cuál, la nota, y quién (desde el token).
+4. Si vienen `diagnosis`, `work_performed` u `observations`, los guarda en la orden
+   (así se registra el avance sin un formulario de edición libre).
+5. Agrega una fila a `order_status_history`: de qué estado a cuál, la nota, y quién (desde el token).
 
 **Consultar:** `GET /orders/{id}` trae la orden con motor, cliente e historial.
 `GET /orders?status=IN_REPAIR&search=CAT` filtra. `GET /orders/summary` cuenta
 cuántas órdenes hay por estado (para el dashboard).
+
+---
+
+## 6.5 El frontend (React)
+
+**Cómo arranca:** [main.tsx](../frontend/src/main.tsx) monta los providers en este orden:
+React Query (caché de datos) → Toasts (avisos) → Auth (sesión) → Router (páginas).
+
+**El camino de una petición:**
+
+```
+Página (p. ej. OrdersPage)
+  └─ useQuery({ queryKey: ['orders', 'list', filtros], queryFn: () => ordersApi.list(filtros) })
+       └─ api/endpoints.ts  → ordersApi.list → request(repairsApiUrl, '/orders', { query })
+            └─ api/http.ts  → agrega "Authorization: Bearer <token>", hace fetch,
+                              y si la respuesta es un error la convierte en ApiError
+```
+
+| Archivo | Qué hace |
+|---|---|
+| [api/http.ts](../frontend/src/api/http.ts) | El único lugar que hace `fetch`. Pone el token, arma la URL con los filtros y convierte `{ error: { code, message } }` en un `ApiError`. Si llega un **401**, avisa al AuthProvider para cerrar la sesión. |
+| [api/errors.ts](../frontend/src/api/errors.ts) | Traduce los errores de las APIs (en inglés) a mensajes en español para el usuario. |
+| [api/endpoints.ts](../frontend/src/api/endpoints.ts) | Una función por endpoint de las dos APIs (`authApi`, `usersApi`, `clientsApi`, `enginesApi`, `ordersApi`). |
+| [auth/session.ts](../frontend/src/auth/session.ts) | Guarda `{ token, user, expiresAt }` en `sessionStorage`. |
+| [auth/AuthContext.tsx](../frontend/src/auth/AuthContext.tsx) | `login()` llama al auth-service y guarda la sesión. `logout()` la borra y limpia la caché. Programa el cierre automático cuando vence el token. |
+| [auth/guards.tsx](../frontend/src/auth/guards.tsx) | `RequireAuth` manda al login si no hay sesión (y recuerda a dónde ibas). `RequireAdmin` protege `/users`. |
+| [router.tsx](../frontend/src/router.tsx) | Las rutas. Cada página se descarga solo cuando se visita (`lazy`). |
+| [lib/labels.ts](../frontend/src/lib/labels.ts) | Traduce los códigos (`IN_REPAIR`) a texto (`En reparación`) y define el color de cada estado. |
+| [pages/orders/StatusChangePanel.tsx](../frontend/src/pages/orders/StatusChangePanel.tsx) | Los botones de "siguiente paso" salen de `allowed_next_statuses`, que manda la API. El front nunca ofrece un cambio que el backend rechazaría. Aquí también se registra el diagnóstico y el trabajo realizado. |
+
+**React Query en dos frases:** guarda en caché cada respuesta bajo una `queryKey`.
+Después de crear o editar algo se llama a `invalidateQueries(['clients'])` y todas
+las listas de clientes se recargan solas. Además da `isPending` (indicador de carga)
+e `isError` (mensaje de error) sin escribir esa lógica a mano.
+
+**Formularios:** react-hook-form + Zod con las mismas reglas que la API (largos,
+formatos, fechas). Así la mayoría de los errores se ven antes de enviar, y los que
+solo conoce el servidor (duplicados, reglas de negocio) se muestran arriba del
+formulario.
+
+**Por qué CORS importa:** el front (`localhost:5173`) llama a otros dos orígenes
+(`:3001` y `:8000`). El navegador solo lo permite porque ambas APIs tienen
+`http://localhost:5173` en `CORS_ORIGINS`. Si cambias el puerto del front, hay
+que cambiarlo también ahí.
 
 ---
 
@@ -340,7 +386,12 @@ cuántas órdenes hay por estado (para el dashboard).
 - `test_orders.py` → creación, ciclo completo hasta `DELIVERED`, saltos inválidos, filtros, resumen.
 - `test_workflow.py` → el mapa de estados (sin BD).
 
-**Pipeline** ([ci.yml](../.github/workflows/ci.yml)), 4 jobs:
+**frontend** (`npm test`, Vitest + Testing Library):
+- `api/http.test.ts` → pone el token, convierte errores, cierra sesión con 401 (pero no en el login).
+- `pages/LoginPage.test.tsx` → validación, credenciales incorrectas, login exitoso, redirección.
+- `pages/orders/StatusChangePanel.test.tsx` → solo muestra los estados permitidos y envía lo correcto.
+
+**Pipeline** ([ci.yml](../.github/workflows/ci.yml)), 5 jobs (el del frontend corre en paralelo con los backends):
 1. `auth-service`: ESLint → `tsc` → genera llaves → tests (con un Postgres temporal) → build.
 2. `repairs-service`: Ruff → tests con cobertura → `alembic check` (los modelos coinciden con las migraciones).
 3. `e2e` (si 1 y 2 pasan): `docker compose up` con todo y `smoke-test.sh`. Es el "entorno de pruebas".

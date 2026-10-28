@@ -51,7 +51,7 @@ flowchart TB
 |---|---|---|
 | **auth-service** | Registro y administración de usuarios, roles (`admin`, `operator`), login, hash de contraseñas, emisión de JWT | Nada del negocio de reparaciones |
 | **repairs-service** | Clientes, motores, órdenes de reparación, historial de estados, resumen para el dashboard | Guardar contraseñas, hacer login, emitir tokens |
-| **frontend** | Login, sesión, vistas de negocio | Validar tokens (eso lo hacen los backends) |
+| **frontend** | Login, sesión (token en `sessionStorage`, cierre automático al vencer o ante un 401), vistas de negocio, mensajes de error en español | Validar tokens ni permisos (eso lo hacen los backends; ocultar el menú de usuarios es solo visual) |
 
 Cada servicio tiene su capa HTTP, su lógica de negocio y su acceso a datos separados:
 
@@ -343,8 +343,10 @@ Reglas:
 flowchart LR
     PR[push / pull request] --> A[auth-service<br/>lint · tsc · tests · build]
     PR --> B[repairs-service<br/>ruff · tests + cobertura · alembic check]
+    PR --> F[frontend<br/>oxlint · tsc · vitest · build]
     A --> E[e2e<br/>docker compose up + smoke test]
     B --> E
+    F --> E
     E -->|solo main| P[publish<br/>imágenes a GHCR]
 ```
 

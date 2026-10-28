@@ -121,6 +121,27 @@ services:
       postgres:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # URLs used by the browser, so they point to the host ports.
+        VITE_AUTH_API_URL: http://localhost:${AUTH_SERVICE_HOST_PORT:-3001}/api/v1
+        VITE_REPAIRS_API_URL: http://localhost:${REPAIRS_SERVICE_HOST_PORT:-8000}/api/v1
+    container_name: mer-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_HOST_PORT:-5173}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - auth-service
+      - repairs-service
+
 volumes:
   postgres_data:
   pgadmin_data:
