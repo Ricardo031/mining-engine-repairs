@@ -8,7 +8,7 @@ su estado.
 |---|---|---|---|
 | [auth-service](services/auth-service) | Express 5 + TypeScript + TypeORM | 3001 | Usuarios, roles, login y emisión de JWT |
 | [repairs-service](services/repairs-service) | FastAPI + SQLAlchemy + Alembic | 8000 | Clientes, motores, órdenes e historial de estados |
-| frontend | React + TypeScript | 5173 | *En desarrollo* |
+| [frontend](frontend) | React + TypeScript + Vite (nginx en Docker) | 5173 | Login, dashboard, clientes, motores, órdenes y usuarios |
 | PostgreSQL 16 | Una base de datos por servicio | 5433 | `auth_db` y `repairs_db` |
 | pgAdmin | Administración de la BD | 5050 | Solo para desarrollo |
 
@@ -37,6 +37,7 @@ autenticación entre servicios) está en [docs/architecture.md](docs/architectur
 │   └── pgadmin/servers.json     Conexión preconfigurada de pgAdmin
 ├── keys/                        Llaves RSA del JWT (ignoradas por git)
 ├── scripts/smoke-test.sh        Prueba end-to-end contra el stack levantado
+├── frontend/                    Aplicación web (React)
 ├── services/
 │   ├── auth-service/            API de autenticación y usuarios
 │   └── repairs-service/         API de negocio
@@ -79,6 +80,7 @@ Las migraciones de ambos servicios se aplican solas al arrancar los contenedores
 | URL | Qué es |
 |---|---|
 | http://localhost:3001/health | Estado del auth-service |
+| **http://localhost:5173** | **La aplicación web** (inicia sesión con el admin del paso 3) |
 | http://localhost:8000/docs | Swagger del repairs-service |
 | http://localhost:5050 | pgAdmin (`PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD`; al abrir el servidor pide `POSTGRES_PASSWORD`) |
 
@@ -106,12 +108,14 @@ Levanta solo la base de datos con `docker compose up -d postgres pgadmin`. Despu
 - **repairs-service:** ver [services/repairs-service/README.md](services/repairs-service/README.md)
   (crear `.venv`, `pip install -r requirements-dev.txt`, `cp .env.example .env`,
   `alembic upgrade head`, `uvicorn app.main:app --reload`).
+- **frontend:** ver [frontend/README.md](frontend/README.md) (`npm install`, `npm run dev`).
 
 ## Pruebas
 
 | Servicio | Comando | Qué cubre |
 |---|---|---|
 | auth-service | `npm test` | Hash de contraseñas, firma y verificación del JWT, login, roles, usuarios (contra `auth_db_test`) |
+| frontend | `npm test` | Cliente HTTP (token, errores, cierre de sesión con 401), login, cambio de estado de la orden |
 | repairs-service | `pytest --cov=app` | Validación del JWT (incluye ataques), CRUD, duplicados, flujo de estados de la orden (contra `repairs_db_test`) |
 | Todo el sistema | `bash scripts/smoke-test.sh` | Login en Express y uso del token en FastAPI, de punta a punta |
 
@@ -127,10 +131,12 @@ request hacia `main` o `develop` y en cada push a `main`, `develop`,
 1. **auth-service:** lint (ESLint), type check (`tsc`), tests con Postgres y build.
 2. **repairs-service:** lint y formato (Ruff), tests con cobertura y verificación
    de que los modelos coinciden con las migraciones (`alembic check`).
-3. **e2e:** construye las imágenes, levanta el stack con `docker compose`
-   (un entorno de pruebas efímero) y ejecuta `scripts/smoke-test.sh`.
-4. **publish** (solo en `main`): publica ambas imágenes en GitHub Container
-   Registry (`ghcr.io/<owner>/mer-auth-service` y `mer-repairs-service`).
+3. **frontend:** lint (oxlint), type check, tests (Vitest) y build.
+4. **e2e:** construye las imágenes, levanta el stack con `docker compose`
+   (un entorno de pruebas efímero), ejecuta `scripts/smoke-test.sh` y verifica
+   que el frontend responde.
+5. **publish** (solo en `main`): publica las tres imágenes en GitHub Container
+   Registry (`ghcr.io/<owner>/mer-auth-service`, `mer-repairs-service` y `mer-frontend`).
 
 Los resultados de los tests (JUnit y cobertura) quedan como artefactos de cada ejecución.
 
