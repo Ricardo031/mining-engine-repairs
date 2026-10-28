@@ -68,7 +68,7 @@ Base: `/api/v1`. Todos requieren token, menos `/health`.
 | GET | `/orders/summary` | Cantidad de órdenes por estado (dashboard) |
 | GET | `/orders/{id}` | Detalle de la orden con su historial |
 | GET | `/orders/by-number/{order_number}` | Buscar por número de orden (`OR-2026-000001`) |
-| PATCH | `/orders/{id}/status` | Cambiar estado (`{ status, note?, actual_delivery_date? }`) |
+| PATCH | `/orders/{id}/status` | Cambiar estado (`{ status, note?, actual_delivery_date?, diagnosis?, work_performed?, observations? }`) |
 
 Formato de respuestas: `{ "data": ... }`. Los listados agregan
 `"meta": { page, limit, total, total_pages }`.
@@ -108,6 +108,9 @@ RECEIVED → IN_DIAGNOSIS → AWAITING_APPROVAL → IN_REPAIR → IN_TESTING →
   Cada cambio guarda una fila en `order_status_history` con el estado anterior,
   el nuevo, una nota y quién lo hizo (id y email tomados del token). Al pasar a
   `DELIVERED` se registra la fecha real de entrega.
+- **Avance de la reparación:** las órdenes no tienen edición libre. El
+  diagnóstico, el trabajo realizado y las observaciones se registran junto con
+  el cambio de estado (campos opcionales; los que no se envían no cambian).
 
 ## Modelo de datos
 
