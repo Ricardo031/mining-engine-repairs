@@ -372,6 +372,12 @@ que cambiarlo también ahí.
 - `tests/unit/jwt.test.ts` → firmar y verificar; firma alterada rechazada.
 - `tests/integration/auth.test.ts` → levanta la app contra `auth_db_test`,
   recrea las tablas con las migraciones y prueba login, 401, 409, etc.
+- `tests/integration/users.test.ts` → roles (un operador recibe 403 en la
+  administración), usuarios desactivados (no entran y su token deja de servir),
+  cambio de contraseña, editar/desactivar usuarios y tokens vencidos,
+  firmados con otra llave o con el payload modificado.
+- `tests/helpers.ts` → utilidades: recrear la base, insertar usuarios y firmar
+  tokens a mano (por ejemplo, ya vencidos) para probar los casos de error.
 - `tests/setup-env.ts` → variables por defecto para los tests. Si el CI define
   otras, se usan las del CI.
 
@@ -385,6 +391,7 @@ que cambiarlo también ahí.
 - `test_clients.py`, `test_engines.py` → CRUD, duplicados, validaciones, permisos de admin.
 - `test_orders.py` → creación, ciclo completo hasta `DELIVERED`, saltos inválidos, filtros, resumen.
 - `test_workflow.py` → el mapa de estados (sin BD).
+- `test_clock.py` → la fecha del negocio usa la zona horaria del taller (8 p. m. en Bogotá sigue siendo "hoy").
 
 **frontend** (`npm test`, Vitest + Testing Library):
 - `api/http.test.ts` → pone el token, convierte errores, cierra sesión con 401 (pero no en el login).
