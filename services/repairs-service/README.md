@@ -93,6 +93,10 @@ Formato de errores, igual que el auth-service:
 - **Número de orden** `OR-<año>-<consecutivo>`: lo genera el servidor a partir
   de una secuencia de PostgreSQL.
 - **Cliente de la orden:** se toma del motor; no se envía en la petición.
+- **Fechas del negocio:** "hoy" se calcula en la zona horaria del taller
+  (`REPAIRS_TIMEZONE`, por defecto `America/Bogota`), no en la del servidor
+  (UTC). Así una orden creada a las 8 p. m. sin `received_at` queda con la fecha
+  correcta, y lo mismo aplica al número de orden y a la fecha de entrega por defecto.
 - **Una orden abierta por motor:** no se puede crear otra hasta que la anterior
   esté `DELIVERED`.
 - **Solo clientes y motores activos** pueden recibir motores u órdenes nuevas.

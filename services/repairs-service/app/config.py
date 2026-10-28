@@ -1,7 +1,9 @@
 """Environment-based configuration for the repairs service."""
 
 from functools import cached_property
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,6 +20,9 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_sql: bool = False
 
+    # Workshop time zone: defines "today" for default dates and the dashboard.
+    timezone: str = "America/Bogota"
+
     # Comma separated list of allowed browser origins
     cors_origins: str = "http://localhost:5173"
 
@@ -30,6 +35,15 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "RS256"
     jwt_issuer: str = "mining-repairs-auth"
     jwt_audience: str = "mining-repairs-api"
+
+    @field_validator("timezone")
+    @classmethod
+    def check_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, ValueError) as exc:
+            raise ValueError(f"Unknown time zone: {value!r} (use an IANA name like America/Bogota)") from exc
+        return value
 
     @cached_property
     def cors_origin_list(self) -> list[str]:
