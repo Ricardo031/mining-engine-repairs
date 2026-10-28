@@ -32,7 +32,12 @@ usersRouter.get(
   validate({ query: listUsersQuerySchema }),
   usersController.list,
 );
-usersRouter.post('/', authorize('admin'), validate({ body: createUserSchema }), usersController.create);
+usersRouter.post(
+  '/',
+  authorize('admin'),
+  validate({ body: createUserSchema }),
+  usersController.create,
+);
 usersRouter.get(
   '/:id',
   authorize('admin'),

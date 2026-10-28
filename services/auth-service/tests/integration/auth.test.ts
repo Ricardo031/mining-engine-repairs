@@ -11,8 +11,9 @@ describe('Auth service (integration)', () => {
   beforeAll(async () => {
     app = createApp();
     await AppDataSource.initialize();
-    // The test database is ephemeral, so schema creation does not need migrations.
-    await AppDataSource.synchronize();
+    // Rebuild the schema from the real migrations so tests match production.
+    await AppDataSource.dropDatabase();
+    await AppDataSource.runMigrations();
     await AppDataSource.getRepository(User).query('DELETE FROM users');
 
     const bcrypt = (await import('bcryptjs')).default;
