@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from app.security import verify_token
+from app.routers.deps import ERROR_RESPONSES
+from app.security import AuthenticatedUser
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["Auth"], responses=ERROR_RESPONSES)
 
 
-@router.get("/auth/me")
-def auth_me(current_user: dict = Depends(verify_token)) -> dict:
-    """Protected endpoint: the JWT must be valid (signed by the auth service)."""
-    return {"data": current_user}
+@router.get("/me")
+def auth_me(user: AuthenticatedUser) -> dict:
+    """Returns the identity read from a valid token signed by the auth service."""
+    return {"data": {"id": user.id, "email": user.email, "role": user.role}}

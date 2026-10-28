@@ -1,5 +1,1 @@
-from fastapi import APIRouter
-
-from app import models  # noqa: F401
-
-router = APIRouter()
+"""HTTP layer: request parsing, dependencies and response models only."""

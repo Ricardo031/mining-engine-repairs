@@ -1,10 +1,16 @@
-"""Database models for the repairs service."""
+"""SQLAlchemy models. Importing this package registers every table on Base.metadata."""
 
-from sqlalchemy.orm import DeclarativeBase
+from app.database import Base
+from app.models.client import Client, IdentificationType
+from app.models.engine import Engine
+from app.models.repair_order import OrderStatus, OrderStatusHistory, RepairOrder
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-from app.models import clients, engines, orders  # noqa: E402,F401
+__all__ = [
+    "Base",
+    "Client",
+    "Engine",
+    "IdentificationType",
+    "OrderStatus",
+    "OrderStatusHistory",
+    "RepairOrder",
+]

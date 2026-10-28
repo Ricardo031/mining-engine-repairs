@@ -1,22 +1,29 @@
-from fastapi import APIRouter
+from datetime import UTC, datetime
 
-from app.database import engine
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
-router = APIRouter()
+from app.database import engine
+
+router = APIRouter(tags=["Health"])
 
 
 @router.get("/health")
-def health() -> dict:
+def health() -> JSONResponse:
     try:
-        with engine.begin() as conn:
+        with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return {"status": "ok", "service": "repairs-service"}
+        database_up = True
     except Exception:
-        from fastapi import Response
+        database_up = False
 
-        return Response(
-            content='{"status": "degraded"}',
-            status_code=503,
-            media_type="application/json",
-        )
+    return JSONResponse(
+        status_code=200 if database_up else 503,
+        content={
+            "status": "ok" if database_up else "degraded",
+            "service": "repairs-service",
+            "database": "up" if database_up else "down",
+            "timestamp": datetime.now(UTC).isoformat(),
+        },
+    )
