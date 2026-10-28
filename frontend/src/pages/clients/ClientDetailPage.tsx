@@ -19,7 +19,7 @@ import { EngineForm } from '../engines/EngineForm';
 import { ClientForm } from './ClientForm';
 
 const engineColumns: Column<Engine>[] = [
-  { header: 'Serie', cell: (e) => <span className="font-medium text-slate-900">{e.serial_number}</span> },
+  { header: 'Serie', cell: (e) => <span className="font-semibold text-navy-950">{e.serial_number}</span> },
   { header: 'Fabricante', cell: (e) => e.manufacturer },
   { header: 'Modelo', cell: (e) => e.model },
   { header: 'Potencia', cell: (e) => e.power },
@@ -27,7 +27,7 @@ const engineColumns: Column<Engine>[] = [
 ];
 
 const orderColumns: Column<OrderListItem>[] = [
-  { header: 'Orden', cell: (o) => <span className="font-medium text-slate-900">{o.order_number}</span> },
+  { header: 'Orden', cell: (o) => <span className="font-semibold text-navy-950">{o.order_number}</span> },
   { header: 'Motor', cell: (o) => o.engine.serial_number },
   { header: 'Estado', cell: (o) => <StatusBadge status={o.status} /> },
   { header: 'Recepción', cell: (o) => formatDate(o.received_at) },

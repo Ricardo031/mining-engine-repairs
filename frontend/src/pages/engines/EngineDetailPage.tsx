@@ -17,7 +17,7 @@ import { formatDate, formatDateTime } from '../../lib/format';
 import { EngineForm } from './EngineForm';
 
 const orderColumns: Column<OrderListItem>[] = [
-  { header: 'Orden', cell: (o) => <span className="font-medium text-slate-900">{o.order_number}</span> },
+  { header: 'Orden', cell: (o) => <span className="font-semibold text-navy-950">{o.order_number}</span> },
   { header: 'Estado', cell: (o) => <StatusBadge status={o.status} /> },
   { header: 'Técnico', cell: (o) => o.technician },
   { header: 'Recepción', cell: (o) => formatDate(o.received_at) },

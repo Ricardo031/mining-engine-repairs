@@ -15,7 +15,7 @@ import { useDebounce } from '../../lib/useDebounce';
 import { ClientForm } from './ClientForm';
 
 const columns: Column<Client>[] = [
-  { header: 'Nombre', cell: (c) => <span className="font-medium text-slate-900">{c.name}</span> },
+  { header: 'Nombre', cell: (c) => <span className="font-semibold text-navy-950">{c.name}</span> },
   { header: 'Identificación', cell: (c) => `${c.identification_type} ${c.identification_number}` },
   { header: 'Correo', cell: (c) => c.email },
   { header: 'Estado', cell: (c) => <ActiveBadge active={c.is_active} /> },

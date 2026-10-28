@@ -96,7 +96,7 @@ export function StatusChangePanel({ order }: { order: Order }) {
             className={cn(
               'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ring-1 ring-inset transition',
               target === status
-                ? 'bg-slate-900 text-white ring-slate-900'
+                ? 'bg-navy-900 text-white ring-navy-900'
                 : 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50',
             )}
           >
