@@ -1,19 +1,20 @@
 // Loads the test environment before any module reads it.
+// Values already set (e.g. by CI) win over these local defaults.
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'warn';
-process.env.CORS_ORIGINS = 'http://localhost:5173';
-process.env.DB_HOST = 'localhost';
-process.env.DB_PORT = '5433';
-process.env.DB_NAME = 'auth_db_test';
-process.env.DB_USER = 'auth_user';
-process.env.DB_PASSWORD = 'change_me_auth';
-process.env.DB_SSL = 'false';
-process.env.DB_LOGGING = 'false';
-process.env.DB_MIGRATIONS_RUN = 'false';
-process.env.JWT_PRIVATE_KEY_PATH = '../../keys/jwt-private.pem';
-process.env.JWT_PUBLIC_KEY_PATH = '../../keys/jwt-public.pem';
-process.env.JWT_ISSUER = 'mining-repairs-auth';
-process.env.JWT_AUDIENCE = 'mining-repairs-api';
-process.env.JWT_EXPIRES_IN_SECONDS = '3600';
-process.env.BCRYPT_ROUNDS = '12';
-process.env.SEED_ADMIN_ENABLED = 'false';
+process.env.CORS_ORIGINS ??= 'http://localhost:5173';
+process.env.DB_HOST ??= 'localhost';
+process.env.DB_PORT ??= '5433';
+process.env.DB_NAME ??= 'auth_db_test';
+process.env.DB_USER ??= 'auth_user';
+process.env.DB_PASSWORD ??= 'change_me_auth';
+process.env.DB_SSL ??= 'false';
+process.env.DB_LOGGING ??= 'false';
+process.env.DB_MIGRATIONS_RUN ??= 'false';
+process.env.JWT_PRIVATE_KEY_PATH ??= '../../keys/jwt-private.pem';
+process.env.JWT_PUBLIC_KEY_PATH ??= '../../keys/jwt-public.pem';
+process.env.JWT_ISSUER ??= 'mining-repairs-auth';
+process.env.JWT_AUDIENCE ??= 'mining-repairs-api';
+process.env.JWT_EXPIRES_IN_SECONDS ??= '3600';
+process.env.BCRYPT_ROUNDS ??= '12';
+process.env.SEED_ADMIN_ENABLED ??= 'false';

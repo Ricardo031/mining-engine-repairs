@@ -69,14 +69,78 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-mining-repairs-api}
       JWT_EXPIRES_IN_SECONDS: 3600
       BCRYPT_ROUNDS: 12
-      SEED_ADMIN_ENABLED: "false"
+      # Bootstrap admin (idempotent). Disabled unless enabled in .env.
+      SEED_ADMIN_ENABLED: ${SEED_ADMIN_ENABLED:-false}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
     ports:
       - "${AUTH_SERVICE_HOST_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
     volumes:
       - ./keys:/app/keys:ro
     depends_on:
       postgres:
         condition: service_healthy
+
+  repairs-service:
+    build:
+      context: ./services/repairs-service
+      dockerfile: Dockerfile
+    container_name: mer-repairs-service
+    restart: unless-stopped
+    environment:
+      REPAIRS_ENVIRONMENT: production
+      REPAIRS_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      REPAIRS_DATABASE_URL: postgresql+psycopg://${REPAIRS_DB_USER}:${REPAIRS_DB_PASSWORD}@postgres:5432/${REPAIRS_DB_NAME}
+      REPAIRS_JWT_PUBLIC_KEY_PATH: /app/keys/jwt-public.pem
+      REPAIRS_JWT_ISSUER: ${JWT_ISSUER:-mining-repairs-auth}
+      REPAIRS_JWT_AUDIENCE: ${JWT_AUDIENCE:-mining-repairs-api}
+    ports:
+      - "${REPAIRS_SERVICE_HOST_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    volumes:
+      # Only the PUBLIC key: this service can verify tokens but never sign them.
+      - ./keys/jwt-public.pem:/app/keys/jwt-public.pem:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # URLs used by the browser, so they point to the host ports.
+        VITE_AUTH_API_URL: http://localhost:${AUTH_SERVICE_HOST_PORT:-3001}/api/v1
+        VITE_REPAIRS_API_URL: http://localhost:${REPAIRS_SERVICE_HOST_PORT:-8000}/api/v1
+    container_name: mer-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_HOST_PORT:-5173}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - auth-service
+      - repairs-service
 
 volumes:
   postgres_data:
