@@ -137,13 +137,53 @@ jobs:
             services/repairs-service/coverage.xml
 
   # ---------------------------------------------------------------------------
-  # 3. Test environment: build the images, start the whole stack with
+  # 3. Frontend: lint, type check, tests and production build
+  # ---------------------------------------------------------------------------
+  frontend:
+    name: Frontend (React + TS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Tests
+        run: npx vitest run --reporter=default --reporter=junit --outputFile.junit=test-results.xml
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: frontend/test-results.xml
+
+  # ---------------------------------------------------------------------------
+  # 4. Test environment: build the images, start the whole stack with
   #    docker compose and run an end-to-end smoke test.
   # ---------------------------------------------------------------------------
   e2e:
     name: Docker compose + end-to-end smoke test
     runs-on: ubuntu-latest
-    needs: [auth-service, repairs-service]
+    needs: [auth-service, repairs-service, frontend]
     # Shell variables take precedence over .env in docker compose.
     env:
       SEED_ADMIN_ENABLED: "true"
@@ -161,7 +201,7 @@ jobs:
           chmod 644 keys/*.pem  # readable by the non-root users inside the containers
 
       - name: Start stack
-        run: docker compose up -d --build --wait postgres auth-service repairs-service
+        run: docker compose up -d --build --wait postgres auth-service repairs-service frontend
 
       - name: Smoke test
         env:
@@ -169,16 +209,22 @@ jobs:
           ADMIN_PASSWORD: ${{ env.SEED_ADMIN_PASSWORD }}
         run: bash scripts/smoke-test.sh
 
+      - name: Frontend is served
+        run: |
+          curl -fsS http://localhost:5173/health
+          # Client-side routes must fall back to index.html
+          curl -fsS http://localhost:5173/orders | grep -q '<div id="root">'
+
       - name: Service logs
         if: always()
-        run: docker compose logs auth-service repairs-service
+        run: docker compose logs auth-service repairs-service frontend
 
       - name: Stop stack
         if: always()
         run: docker compose down -v
 
   # ---------------------------------------------------------------------------
-  # 4. Publish images to GitHub Container Registry (only on main)
+  # 5. Publish images to GitHub Container Registry (only on main)
   # ---------------------------------------------------------------------------
   publish:
     name: Publish Docker images
@@ -190,7 +236,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        service: [auth-service, repairs-service]
+        service: [auth-service, repairs-service, frontend]
     steps:
       - uses: actions/checkout@v4
 
@@ -208,7 +254,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: services/${{ matrix.service }}
+          context: ${{ matrix.service == 'frontend' && 'frontend' || format('services/{0}', matrix.service) }}
           push: true
           tags: |
             ${{ steps.image.outputs.name }}:latest
