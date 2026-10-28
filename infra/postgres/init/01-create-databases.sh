@@ -15,7 +15,19 @@ create_service_db() {
 EOSQL
 }
 
+# Extra database owned by an existing role (no new role is created).
+create_owned_db() {
+  local db="$1" user="$2"
+  echo "Creating database '$db' owned by '$user'"
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<-EOSQL
+    CREATE DATABASE "$db" OWNER "$user";
+    REVOKE ALL ON DATABASE "$db" FROM PUBLIC;
+EOSQL
+}
+
 create_service_db "$AUTH_DB_NAME" "$AUTH_DB_USER" "$AUTH_DB_PASSWORD"
 create_service_db "$REPAIRS_DB_NAME" "$REPAIRS_DB_USER" "$REPAIRS_DB_PASSWORD"
 
-create_service_db "auth_db_test" "auth_user" "change_me_auth"
+# Integration tests of each service run against their own database.
+create_owned_db "${AUTH_DB_NAME}_test" "$AUTH_DB_USER"
+create_owned_db "${REPAIRS_DB_NAME}_test" "$REPAIRS_DB_USER"

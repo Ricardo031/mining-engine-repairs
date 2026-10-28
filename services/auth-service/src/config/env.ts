@@ -13,6 +13,8 @@ const booleanString = (defaultValue: 'true' | 'false') =>
     .default(defaultValue)
     .transform((value) => value === 'true');
 
+const emptyToUndefined = (value: unknown) => (value === '' ? undefined : value);
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -40,8 +42,9 @@ const envSchema = z
     BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
 
     SEED_ADMIN_ENABLED: booleanString('false'),
-    SEED_ADMIN_EMAIL: z.string().email().optional(),
-    SEED_ADMIN_PASSWORD: z.string().min(8).max(72).optional(),
+    // Empty values (e.g. "${VAR:-}" in docker-compose) count as "not set".
+    SEED_ADMIN_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
+    SEED_ADMIN_PASSWORD: z.preprocess(emptyToUndefined, z.string().min(8).max(72).optional()),
     SEED_ADMIN_FIRST_NAME: z.string().min(1).default('System'),
     SEED_ADMIN_LAST_NAME: z.string().min(1).default('Administrator'),
   })
