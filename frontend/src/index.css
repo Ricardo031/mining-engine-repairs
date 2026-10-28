@@ -1,19 +1,32 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/plus-jakarta-sans';
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* Brand: amber accent on slate, industrial look */
-  --color-brand-50: #fffbeb;
-  --color-brand-100: #fef3c7;
-  --color-brand-500: #f59e0b;
-  --color-brand-600: #d97706;
-  --color-brand-700: #b45309;
+  /* Brand: amber accent on deep navy, industrial look */
+  --color-brand-50: #fff8e6;
+  --color-brand-100: #ffefc2;
+  --color-brand-200: #ffe08a;
+  --color-brand-400: #ffbe2e;
+  --color-brand-500: #f5a400;
+  --color-brand-600: #d98c00;
+  --color-brand-700: #a86a00;
+
+  --color-navy-600: #34445f;
+  --color-navy-700: #26354f;
+  --color-navy-800: #1b2840;
+  --color-navy-900: #141f33;
+  --color-navy-950: #0f1828;
+
+  --color-canvas: #f4f5f7;
 }
 
 @layer base {
   html {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply bg-canvas text-slate-800 antialiased;
+    /* Plus Jakarta Sans has very narrow spaces; this keeps words readable. */
+    word-spacing: 0.1em;
   }
 
   :focus-visible {
