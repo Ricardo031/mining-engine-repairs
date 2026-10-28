@@ -1,6 +1,18 @@
 import type { IdentificationType, OrderStatus, Role } from '../api/types';
 
-/** The API speaks in codes; the UI shows Spanish labels. */
+// The API speaks in codes; the UI shows Spanish labels.
+
+/** Shorter labels for tight spaces (dashboard cards). */
+export const STATUS_SHORT_LABELS: Record<OrderStatus, string> = {
+  RECEIVED: 'Recibido',
+  IN_DIAGNOSIS: 'En diagnóstico',
+  AWAITING_APPROVAL: 'Por aprobar',
+  IN_REPAIR: 'En reparación',
+  IN_TESTING: 'En pruebas',
+  COMPLETED: 'Finalizado',
+  DELIVERED: 'Entregado',
+};
+
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   RECEIVED: 'Recibido',
   IN_DIAGNOSIS: 'En diagnóstico',

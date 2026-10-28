@@ -37,7 +37,7 @@ export function Modal({
         onClose();
       }}
       aria-labelledby="modal-title"
-      className="m-auto w-full max-w-lg rounded-xl bg-white p-0 shadow-xl backdrop:bg-slate-900/40"
+      className="m-auto w-full max-w-lg rounded-2xl bg-white p-0 shadow-2xl backdrop:bg-navy-950/50"
     >
       {open && (
         <>

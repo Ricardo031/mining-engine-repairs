@@ -1,18 +1,39 @@
-const dateFormatter = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' });
+const monthFormatter = new Intl.DateTimeFormat('es-CO', { month: 'short' });
+const longDayFormatter = new Intl.DateTimeFormat('es-CO', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+});
 const dateTimeFormatter = new Intl.DateTimeFormat('es-CO', {
   dateStyle: 'medium',
   timeStyle: 'short',
 });
 
-/**
- * Formats "YYYY-MM-DD" (a calendar date, no time zone) or an ISO timestamp.
- * Plain dates are parsed as local dates so they do not shift one day back.
- */
+/** Parses "YYYY-MM-DD" as a local date (so it does not shift one day back) or an ISO timestamp. */
+export function parseDate(value: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : new Date(value);
+}
+
+/** "18 Nov, 2026" */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
-  const plainDate = /^\d{4}-\d{2}-\d{2}$/.exec(value);
-  const date = plainDate ? new Date(`${value}T00:00:00`) : new Date(value);
-  return Number.isNaN(date.getTime()) ? value : dateFormatter.format(date);
+  const date = parseDate(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const month = monthFormatter.format(date).replace('.', '');
+  return `${date.getDate()} ${month.charAt(0).toUpperCase()}${month.slice(1)}, ${date.getFullYear()}`;
+}
+
+/** "LUNES, 27 DE OCTUBRE" style eyebrow (returned in normal case; CSS uppercases it). */
+export function formatLongDay(date: Date = new Date()): string {
+  return longDayFormatter.format(date);
+}
+
+/** "Buenos días" / "Buenas tardes" / "Buenas noches" depending on the local hour. */
+export function greeting(date: Date = new Date()): string {
+  const hour = date.getHours();
+  if (hour < 12) return 'Buenos días';
+  if (hour < 19) return 'Buenas tardes';
+  return 'Buenas noches';
 }
 
 export function formatDateTime(value: string | null | undefined): string {
