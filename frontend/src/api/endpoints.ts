@@ -112,7 +112,9 @@ export interface StatusChangeInput {
 
 export const ordersApi = {
   list: (query: QueryParams) => request<Paginated<OrderListItem>>(repairs, '/orders', { query }),
-  summary: () => request<Data<OrdersSummary>>(repairs, '/orders/summary').then((r) => r.data),
+  /** `today` (YYYY-MM-DD, local time) so the dashboard numbers use the user's time zone. */
+  summary: (today: string) =>
+    request<Data<OrdersSummary>>(repairs, '/orders/summary', { query: { today } }).then((r) => r.data),
   get: (id: string) => request<Data<Order>>(repairs, `/orders/${id}`).then((r) => r.data),
   create: (body: OrderInput) =>
     request<Data<Order>>(repairs, '/orders', { method: 'POST', body }).then((r) => r.data),
