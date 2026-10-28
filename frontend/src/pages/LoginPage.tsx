@@ -44,13 +44,13 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-dvh">
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-slate-900 p-12 lg:flex">
+      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-navy-950 p-12 lg:flex">
         <div
           className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-brand-500/10 blur-3xl"
           aria-hidden
         />
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-brand-500 text-slate-900">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-brand-500 text-navy-950">
             <Cog className="size-6" aria-hidden />
           </div>
           <span className="text-lg font-semibold text-white">Mining Repairs</span>
@@ -69,7 +69,7 @@ export function LoginPage() {
 
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Inicia sesión</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-navy-950">Inicia sesión</h1>
           <p className="mt-1 text-sm text-slate-500">Ingresa con tu cuenta del taller.</p>
 
           <form onSubmit={onSubmit} noValidate className="mt-8 space-y-5">

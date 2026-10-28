@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -8,7 +8,7 @@ from app.core.workflow import allowed_next_statuses, can_transition
 from app.models import OrderStatus, OrderStatusHistory, RepairOrder
 from app.repositories.orders import OrderRepository
 from app.schemas.common import PaginationParams
-from app.schemas.orders import OrderCreate, OrdersSummary, OrderStatusUpdate, StatusCount
+from app.schemas.orders import DayCount, OrderCreate, OrdersSummary, OrderStatusUpdate, StatusCount
 from app.security import CurrentUser
 from app.services.engines import EngineService
 
@@ -121,7 +121,31 @@ class OrderService:
         self.db.commit()
         return self.get(order.id)
 
-    def summary(self) -> OrdersSummary:
+    def summary(self, today: date | None = None) -> OrdersSummary:
+        today = today or date.today()
         counts = self.orders.count_by_status()
-        by_status = [StatusCount(status=s, count=counts.get(s, 0)) for s in OrderStatus]
-        return OrdersSummary(total=sum(counts.values()), by_status=by_status)
+        total = sum(counts.values())
+        overdue, due_soon = self.orders.count_active_by_delivery(today, today + timedelta(days=6))
+
+        month_start = today.replace(day=1)
+        last_month_end = month_start - timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+
+        # Two consecutive 7-day windows: [today-13, today-7] and [today-6, today].
+        received = self.orders.count_received_by_day(today - timedelta(days=13), today)
+        last_7 = [today - timedelta(days=offset) for offset in range(6, -1, -1)]
+        previous_7 = [day - timedelta(days=7) for day in last_7]
+
+        return OrdersSummary(
+            today=today,
+            total=total,
+            by_status=[StatusCount(status=s, count=counts.get(s, 0)) for s in OrderStatus],
+            active=total - counts.get(OrderStatus.DELIVERED, 0),
+            overdue=overdue,
+            due_soon=due_soon,
+            delivered_this_month=self.orders.count_delivered_between(month_start, today),
+            delivered_last_month=self.orders.count_delivered_between(last_month_start, last_month_end),
+            received_last_7_days=sum(received.get(day, 0) for day in last_7),
+            received_previous_7_days=sum(received.get(day, 0) for day in previous_7),
+            received_by_day=[DayCount(date=day, count=received.get(day, 0)) for day in last_7],
+        )

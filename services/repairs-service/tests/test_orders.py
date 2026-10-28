@@ -245,3 +245,38 @@ def test_invalid_transition_does_not_save_details(http, operator_headers, create
 
     current = http.get(f"{URL}/{order['id']}", headers=operator_headers).json()["data"]
     assert current["diagnosis"] is None
+
+
+def deliver(http, headers, order_id: str, delivered_on: str) -> None:
+    for status in LIFECYCLE[:-1]:
+        assert change_status(http, headers, order_id, status).status_code == 200
+    response = change_status(http, headers, order_id, "DELIVERED", actual_delivery_date=delivered_on)
+    assert response.status_code == 200
+
+
+def test_summary_dashboard_metrics(http, operator_headers, create_order):
+    # Reference day: 2026-10-15
+    create_order(received_at="2026-10-10", estimated_delivery_date="2026-10-18")  # due soon
+    create_order(received_at="2026-10-01", estimated_delivery_date="2026-10-05")  # overdue
+    this_month = create_order(received_at="2026-10-03", estimated_delivery_date="2026-10-30")
+    last_month = create_order(received_at="2026-09-02", estimated_delivery_date="2026-09-20")
+    deliver(http, operator_headers, this_month["id"], "2026-10-12")
+    deliver(http, operator_headers, last_month["id"], "2026-09-25")
+
+    response = http.get(f"{URL}/summary", params={"today": "2026-10-15"}, headers=operator_headers)
+    assert response.status_code == 200
+    summary = response.json()["data"]
+
+    assert summary["today"] == "2026-10-15"
+    assert summary["total"] == 4
+    assert summary["active"] == 2
+    assert summary["overdue"] == 1
+    assert summary["due_soon"] == 1
+    assert summary["delivered_this_month"] == 1
+    assert summary["delivered_last_month"] == 1
+    assert summary["received_last_7_days"] == 1  # 2026-10-09 .. 2026-10-15
+    assert summary["received_previous_7_days"] == 1  # 2026-10-02 .. 2026-10-08
+    by_day = summary["received_by_day"]
+    assert [d["date"] for d in by_day][0] == "2026-10-09"
+    assert [d["date"] for d in by_day][-1] == "2026-10-15"
+    assert {d["date"]: d["count"] for d in by_day}["2026-10-10"] == 1

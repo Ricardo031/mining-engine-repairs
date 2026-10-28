@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from fastapi import APIRouter
 from fastapi import status as http_status
@@ -49,9 +50,12 @@ def list_orders(
 
 
 @router.get("/summary", response_model=DataResponse[OrdersSummary])
-def orders_summary(db: DbSession, _: AuthenticatedUser):
-    """Number of orders per status, for the dashboard."""
-    return {"data": OrderService(db).summary()}
+def orders_summary(db: DbSession, _: AuthenticatedUser, today: date | None = None):
+    """Dashboard numbers: orders per status, deliveries due, monthly deliveries and recent intake.
+
+    `today` (YYYY-MM-DD) lets the client use its own time zone; defaults to the server date.
+    """
+    return {"data": OrderService(db).summary(today)}
 
 
 @router.get("/by-number/{order_number}", response_model=DataResponse[OrderOut])

@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn';
 
 // Invalid fields are styled through aria-invalid (a variant always wins over the base ring color).
 const controlClasses =
-  'block w-full rounded-lg border-0 bg-white px-3 text-sm text-slate-900 shadow-xs ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 aria-invalid:ring-red-400 aria-invalid:focus:ring-red-500';
+  'block w-full rounded-xl border-0 bg-white px-3 text-sm text-slate-900 shadow-xs ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 aria-invalid:ring-red-400 aria-invalid:focus:ring-red-500';
 
 interface FieldProps {
   label: string;

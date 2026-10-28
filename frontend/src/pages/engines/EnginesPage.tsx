@@ -15,7 +15,7 @@ import { useDebounce } from '../../lib/useDebounce';
 import { EngineForm } from './EngineForm';
 
 const columns: Column<Engine>[] = [
-  { header: 'Serie', cell: (e) => <span className="font-medium text-slate-900">{e.serial_number}</span> },
+  { header: 'Serie', cell: (e) => <span className="font-semibold text-navy-950">{e.serial_number}</span> },
   { header: 'Fabricante / modelo', cell: (e) => `${e.manufacturer} ${e.model}` },
   { header: 'Tipo', cell: (e) => e.engine_type },
   { header: 'Potencia', cell: (e) => e.power },

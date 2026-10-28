@@ -123,6 +123,17 @@ export interface Order extends OrderListItem {
 }
 
 export interface OrdersSummary {
+  today: string;
   total: number;
   by_status: { status: OrderStatus; count: number }[];
+  /** Not delivered yet. */
+  active: number;
+  overdue: number;
+  /** Active orders due today or in the next 6 days. */
+  due_soon: number;
+  delivered_this_month: number;
+  delivered_last_month: number;
+  received_last_7_days: number;
+  received_previous_7_days: number;
+  received_by_day: { date: string; count: number }[];
 }

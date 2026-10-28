@@ -74,6 +74,32 @@ class OrderRepository:
         rows = self.db.execute(select(RepairOrder.status, func.count()).group_by(RepairOrder.status)).all()
         return {status: count for status, count in rows}
 
+    def count_active_by_delivery(self, today: date, due_until: date) -> tuple[int, int]:
+        """(overdue, due_soon) among orders not delivered yet."""
+        active = RepairOrder.status != OrderStatus.DELIVERED
+        overdue = func.count().filter(active, RepairOrder.estimated_delivery_date < today)
+        due_soon = func.count().filter(active, RepairOrder.estimated_delivery_date.between(today, due_until))
+        row = self.db.execute(select(overdue, due_soon).select_from(RepairOrder)).one()
+        return row[0], row[1]
+
+    def count_delivered_between(self, start: date, end: date) -> int:
+        return (
+            self.db.scalar(
+                select(func.count())
+                .select_from(RepairOrder)
+                .where(RepairOrder.actual_delivery_date.between(start, end))
+            )
+            or 0
+        )
+
+    def count_received_by_day(self, start: date, end: date) -> dict[date, int]:
+        rows = self.db.execute(
+            select(RepairOrder.received_at, func.count())
+            .where(RepairOrder.received_at.between(start, end))
+            .group_by(RepairOrder.received_at)
+        ).all()
+        return {day: count for day, count in rows}
+
     def has_open_order_for_engine(self, engine_id: uuid.UUID) -> bool:
         open_statuses = [s for s in OrderStatus if s is not OrderStatus.DELIVERED]
         return bool(

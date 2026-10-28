@@ -84,6 +84,22 @@ class StatusCount(OutputModel):
     count: int
 
 
+class DayCount(OutputModel):
+    date: date
+    count: int
+
+
 class OrdersSummary(OutputModel):
+    """Dashboard numbers. Dates are relative to `today` (sent by the client to use its time zone)."""
+
+    today: date
     total: int
     by_status: list[StatusCount]
+    active: int = Field(description="Orders not delivered yet (still in the workshop)")
+    overdue: int = Field(description="Active orders whose estimated delivery date already passed")
+    due_soon: int = Field(description="Active orders due today or in the next 6 days")
+    delivered_this_month: int
+    delivered_last_month: int
+    received_last_7_days: int
+    received_previous_7_days: int
+    received_by_day: list[DayCount] = Field(description="Orders received on each of the last 7 days")

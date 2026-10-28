@@ -17,7 +17,7 @@ import { STATUS_LABELS } from '../../lib/labels';
 import { useDebounce } from '../../lib/useDebounce';
 
 const columns: Column<OrderListItem>[] = [
-  { header: 'Orden', cell: (o) => <span className="font-medium text-slate-900">{o.order_number}</span> },
+  { header: 'Orden', cell: (o) => <span className="font-semibold text-navy-950">{o.order_number}</span> },
   { header: 'Cliente', cell: (o) => o.client.name },
   {
     header: 'Motor',

@@ -65,7 +65,7 @@ Base: `/api/v1`. Todos requieren token, menos `/health`.
 | DELETE | `/engines/{id}` | Desactivar motor (admin, borrado lógico) |
 | POST | `/orders` | Crear orden (queda en `RECEIVED`) |
 | GET | `/orders` | Listar (`?status=&client_id=&engine_id=&search=&page=&limit=`) |
-| GET | `/orders/summary` | Cantidad de órdenes por estado (dashboard) |
+| GET | `/orders/summary?today=` | Datos del dashboard: órdenes por estado, activas, vencidas, entregas de los próximos 7 días, entregadas este mes y el anterior, y recibidas por día en la última semana |
 | GET | `/orders/{id}` | Detalle de la orden con su historial |
 | GET | `/orders/by-number/{order_number}` | Buscar por número de orden (`OR-2026-000001`) |
 | PATCH | `/orders/{id}/status` | Cambiar estado (`{ status, note?, actual_delivery_date?, diagnosis?, work_performed?, observations? }`) |
