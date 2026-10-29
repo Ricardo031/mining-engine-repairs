@@ -95,6 +95,7 @@ services:
     restart: unless-stopped
     environment:
       REPAIRS_ENVIRONMENT: production
+      REPAIRS_TIMEZONE: ${TIMEZONE:-America/Bogota}
       REPAIRS_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
       REPAIRS_DATABASE_URL: postgresql+psycopg://${REPAIRS_DB_USER}:${REPAIRS_DB_PASSWORD}@postgres:5432/${REPAIRS_DB_NAME}
       REPAIRS_JWT_PUBLIC_KEY_PATH: /app/keys/jwt-public.pem

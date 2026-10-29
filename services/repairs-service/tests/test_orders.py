@@ -280,3 +280,24 @@ def test_summary_dashboard_metrics(http, operator_headers, create_order):
     assert [d["date"] for d in by_day][0] == "2026-10-09"
     assert [d["date"] for d in by_day][-1] == "2026-10-15"
     assert {d["date"]: d["count"] for d in by_day}["2026-10-10"] == 1
+
+
+def test_received_at_defaults_to_workshop_today(http, operator_headers, create_engine):
+    """Without received_at the order uses today in the workshop time zone, not the UTC date."""
+    from app.core.clock import business_today
+
+    response = http.post(
+        URL,
+        json={
+            "engine_id": create_engine()["id"],
+            "reported_problem": "No arranca",
+            "technician": "Ana Gómez",
+            "estimated_delivery_date": "2099-01-01",
+        },
+        headers=operator_headers,
+    )
+    assert response.status_code == 201
+    order = response.json()["data"]
+    today = business_today()
+    assert order["received_at"] == today.isoformat()
+    assert order["order_number"].startswith(f"OR-{today.year}-")

@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 from pydantic import Field, computed_field, model_validator
 
+from app.core.clock import business_today
 from app.core.workflow import allowed_next_statuses
 from app.models import OrderStatus
 from app.schemas.clients import ClientSummary
@@ -12,7 +13,10 @@ from app.schemas.engines import EngineSummary
 
 class OrderCreate(InputModel):
     engine_id: uuid.UUID
-    received_at: date = Field(default_factory=date.today, description="Reception date")
+    received_at: date = Field(
+        default_factory=lambda: business_today(),
+        description="Reception date (defaults to today in the workshop time zone)",
+    )
     reported_problem: LongText
     diagnosis: LongText | None = None
     work_performed: LongText | None = Field(None, description="Work done or repair required")

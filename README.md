@@ -114,7 +114,7 @@ Levanta solo la base de datos con `docker compose up -d postgres pgadmin`. Despu
 
 | Servicio | Comando | Qué cubre |
 |---|---|---|
-| auth-service | `npm test` | Hash de contraseñas, firma y verificación del JWT, login, roles, usuarios (contra `auth_db_test`) |
+| auth-service | `npm test` | Hash de contraseñas, login, permisos por rol (operador → 403), usuarios desactivados, cambio de contraseña, administración de usuarios y tokens vencidos, falsificados o modificados (contra `auth_db_test`) |
 | frontend | `npm test` | Cliente HTTP (token, errores, cierre de sesión con 401), login, cambio de estado de la orden |
 | repairs-service | `pytest --cov=app` | Validación del JWT (incluye ataques), CRUD, duplicados, flujo de estados de la orden (contra `repairs_db_test`) |
 | Todo el sistema | `bash scripts/smoke-test.sh` | Login en Express y uso del token en FastAPI, de punta a punta |

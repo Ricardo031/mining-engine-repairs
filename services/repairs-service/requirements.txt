@@ -8,3 +8,5 @@ cryptography==50.0.2
 psycopg[binary]==3.2.6
 sqlalchemy==2.0.41
 alembic==1.14.0
+# IANA time zones for zoneinfo (Windows and slim images have none)
+tzdata==2026.5

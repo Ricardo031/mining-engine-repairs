@@ -3,6 +3,7 @@ from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.clock import business_today
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.workflow import allowed_next_statuses, can_transition
 from app.models import OrderStatus, OrderStatusHistory, RepairOrder
@@ -32,7 +33,7 @@ class OrderService:
 
         order = RepairOrder(
             **data.model_dump(),
-            order_number=self.orders.next_order_number(date.today()),
+            order_number=self.orders.next_order_number(business_today()),
             client_id=engine.client_id,
             status=S.RECEIVED,
             created_by=user.id,
@@ -94,7 +95,7 @@ class OrderService:
             )
 
         if data.status is S.DELIVERED:
-            delivered_on = data.actual_delivery_date or date.today()
+            delivered_on = data.actual_delivery_date or business_today()
             if delivered_on < order.received_at:
                 raise BusinessRuleError("actual_delivery_date cannot be before the reception date")
             order.actual_delivery_date = delivered_on
@@ -122,7 +123,7 @@ class OrderService:
         return self.get(order.id)
 
     def summary(self, today: date | None = None) -> OrdersSummary:
-        today = today or date.today()
+        today = today or business_today()
         counts = self.orders.count_by_status()
         total = sum(counts.values())
         overdue, due_soon = self.orders.count_active_by_delivery(today, today + timedelta(days=6))
